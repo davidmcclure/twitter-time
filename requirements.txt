@@ -1,0 +1,10 @@
+
+ipython
+jupyter
+sqlalchemy
+numpy
+scipy
+matplotlib
+ujson
+scandir
+invoke
