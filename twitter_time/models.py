@@ -68,8 +68,8 @@ class MinuteCount(Base):
         print(col_names)
 
     @classmethod
-    def token_series(cls, token, corpus=None, pos=None):
-        """Get an offset -> count series for a word.
+    def token_series(cls, token):
+        """Get an minute -> count series for a word.
 
         Args:
             token (str)
@@ -90,3 +90,21 @@ class MinuteCount(Base):
             series[offset] = count
 
         return series
+
+    @classmethod
+    def token_counts(cls):
+        """Get total (un-bucketed) token counts.
+
+        Args:
+            min_count (int)
+
+        Returns: OrderedDict
+        """
+        query = (
+            session
+            .query(cls.token, func.sum(cls.count))
+            .group_by(cls.token)
+            .order_by(func.sum(cls.count).desc())
+        )
+
+        return OrderedDict(query.all())
