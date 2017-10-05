@@ -46,27 +46,6 @@ class MinuteCount(Base):
                 session.commit()
                 print(dt.now(), path)
 
-    # TODO: Move to base class.
-    @classmethod
-    def add_index(cls, *cols, **kwargs):
-        """Add an index to the table.
-        """
-        # Make slug from column names.
-        col_names = '_'.join([c.name for c in cols])
-
-        # Build the index name.
-        name = 'idx_{}_{}'.format(cls.__tablename__, col_names)
-
-        idx = Index(name, *cols, **kwargs)
-
-        # Render the index.
-        try:
-            idx.create(bind=engine)
-        except Exception as e:
-            print(e)
-
-        print(col_names)
-
     @classmethod
     def token_series(cls, token):
         """Get an minute -> count series for a word.
