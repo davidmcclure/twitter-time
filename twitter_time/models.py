@@ -46,6 +46,56 @@ class MinuteCount(Base):
                 session.commit()
                 print(dt.now(), path)
 
+    # TODO: Move to base class.
+    @classmethod
+    def add_index(cls, *cols, **kwargs):
+        """Add an index to the table.
+        """
+        # Make slug from column names.
+        col_names = '_'.join([c.name for c in cols])
+
+        # Build the index name.
+        name = 'idx_{}_{}'.format(cls.__tablename__, col_names)
+
+        idx = Index(name, *cols, **kwargs)
+
+        # Render the index.
+        try:
+            idx.create(bind=engine)
+        except Exception as e:
+            print(e)
+
+        print(col_names)
+
+    @classmethod
+    def add_indexes(cls):
+        """Add indexes.
+        """
+        cls.add_index(cls.token)
+
+    @classmethod
+    def overall_series(cls):
+        """Get overall minute -> word count totals.
+
+        Args:
+            token (str)
+
+        Returns: np.array
+        """
+        query = (
+            session
+            .query(cls.minute, func.sum(cls.count))
+            .group_by(cls.minute)
+            .order_by(cls.minute)
+        )
+
+        series = np.zeros(60)
+
+        for minute, count in query:
+            series[minute] = count
+
+        return series
+
     @classmethod
     def token_series(cls, token):
         """Get an minute -> count series for a word.
@@ -53,7 +103,7 @@ class MinuteCount(Base):
         Args:
             token (str)
 
-        Returns: OrderedDict
+        Returns: np.array
         """
         query = (
             session
@@ -63,10 +113,13 @@ class MinuteCount(Base):
             .order_by(cls.minute)
         )
 
-        series = np.zeros(60)
+        series = np.zeros(48)
 
-        for offset, count in query:
-            series[offset] = count
+        i = 0
+        for minute, count in query:
+            if minute % 5 != 0:
+                series[i] = count
+                i += 1
 
         return series
 

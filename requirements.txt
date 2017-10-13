@@ -8,3 +8,4 @@ matplotlib
 ujson
 scandir
 invoke
+pandas
