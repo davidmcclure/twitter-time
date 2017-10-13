@@ -113,13 +113,10 @@ class MinuteCount(Base):
             .order_by(cls.minute)
         )
 
-        series = np.zeros(48)
+        series = np.zeros(60)
 
-        i = 0
         for minute, count in query:
-            if minute % 5 != 0:
-                series[i] = count
-                i += 1
+            series[minute] = count
 
         return series
 
