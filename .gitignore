@@ -97,8 +97,5 @@ ENV/
 /site
 
 # twitter
-/data
-*.db
 *.db-journal
-*.json
 cache*
