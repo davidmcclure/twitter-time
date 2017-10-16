@@ -100,6 +100,21 @@ class TokenMinuteCount(Base):
         return series
 
     @classmethod
+    def token_series_omit_5s(cls, token):
+        """Token series with mod-5 minutes.
+
+        Args:
+            token (str)
+
+        Returns: np.array
+        """
+        series = cls.token_series(token)
+
+        counts = [count for i, count in enumerate(series) if i % 5 != 0]
+
+        return np.array(counts)
+
+    @classmethod
     def token_counts(cls):
         """Get total (un-bucketed) token counts.
 

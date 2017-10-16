@@ -54,6 +54,25 @@ class TokenMonthMinuteCount(Base):
                 session.commit()
                 print(path)
 
+    @classmethod
+    def token_series(cls, token):
+        """Get an minute -> count series for a word.
+
+        Args:
+            token (str)
+
+        Returns: np.array
+        """
+        query = (
+            session
+            .query(cls.month, cls.minute, func.sum(cls.count))
+            .filter(cls.token == token)
+            .group_by(cls.month, cls.minute)
+            .order_by(cls.month, cls.minute)
+        )
+
+        return query.all()
+
 
 @click.group()
 def cli():
