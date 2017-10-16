@@ -7,7 +7,6 @@ scipy
 matplotlib
 ujson
 scandir
-invoke
 pandas
 wordfreq
 click
