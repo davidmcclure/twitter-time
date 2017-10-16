@@ -1,6 +1,7 @@
 
 
 import numpy as np
+import glob
 import ujson
 
 from datetime import datetime as dt
@@ -11,7 +12,6 @@ from sqlalchemy.schema import Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import func
 
-from .utils import scan_paths
 from .db import session, engine
 
 
@@ -34,10 +34,10 @@ class MinuteCount(Base):
     count = Column(Integer, nullable=False)
 
     @classmethod
-    def load(cls, root):
-        """Bulk-insert rows from CSVs.
+    def load(cls, pattern):
+        """Bulk-insert rows from JSON partitions.
         """
-        for path in scan_paths(root, '\.json$'):
+        for path in glob.glob(pattern):
             with open(path) as fh:
 
                 segment = [ujson.loads(line) for line in fh]
