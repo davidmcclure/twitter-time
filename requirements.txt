@@ -10,3 +10,4 @@ scandir
 invoke
 pandas
 wordfreq
+click

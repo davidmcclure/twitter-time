@@ -1,33 +1,39 @@
 
 
+import os
 import numpy as np
 import glob
 import ujson
+import click
 
-from datetime import datetime as dt
 from collections import OrderedDict
 
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.schema import Index
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import create_engine, event, Column, Integer, String, func
+from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import func
 
-from .db import session, engine
+
+db_path = os.path.join(os.path.dirname(__file__), 'data.db')
+url = URL(drivername='sqlite', database=db_path)
+engine = create_engine(url)
+factory = sessionmaker(bind=engine)
+session = scoped_session(factory)
 
 
 Base = declarative_base()
 Base.query = session.query_property()
 
 
-class MinuteCount(Base):
+class TokenMinuteCount(Base):
 
-    __tablename__ = 'minute_count'
+    __tablename__ = 'token_minute_count'
 
     __table_args__ = dict(sqlite_autoincrement=True)
 
     id = Column(Integer, primary_key=True)
 
-    token = Column(String, nullable=False)
+    token = Column(String, nullable=False, index=True)
 
     minute = Column(Integer, nullable=False)
 
@@ -44,34 +50,7 @@ class MinuteCount(Base):
                 session.bulk_insert_mappings(cls, segment)
 
                 session.commit()
-                print(dt.now(), path)
-
-    # TODO: Move to base class.
-    @classmethod
-    def add_index(cls, *cols, **kwargs):
-        """Add an index to the table.
-        """
-        # Make slug from column names.
-        col_names = '_'.join([c.name for c in cols])
-
-        # Build the index name.
-        name = 'idx_{}_{}'.format(cls.__tablename__, col_names)
-
-        idx = Index(name, *cols, **kwargs)
-
-        # Render the index.
-        try:
-            idx.create(bind=engine)
-        except Exception as e:
-            print(e)
-
-        print(col_names)
-
-    @classmethod
-    def add_indexes(cls):
-        """Add indexes.
-        """
-        cls.add_index(cls.token)
+                print(path)
 
     @classmethod
     def overall_series(cls):
@@ -137,3 +116,24 @@ class MinuteCount(Base):
         )
 
         return OrderedDict(query.all())
+
+
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+def create():
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
+
+@cli.command()
+@click.argument('path', type=click.Path())
+def load(path):
+    TokenMinuteCount.load(path)
+
+
+if __name__ == '__main__':
+    cli()
